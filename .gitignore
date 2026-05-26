@@ -21,7 +21,6 @@ pnpm-debug.log*
 # Editor
 .vscode/
 .idea/
-.idea
 *.swp
 *.swo
 *~
@@ -35,3 +34,4 @@ coverage/
 
 # Misc
 *.tsbuildinfo
+/.idea/
