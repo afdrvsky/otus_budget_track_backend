@@ -5,9 +5,19 @@ import { createError } from '../middleware/errorHandler';
 import * as authService from '../services/authService';
 
 export const registerValidation = [
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('full_name').optional().isLength({ max: 100 }),
+  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain an uppercase letter')
+    .matches(/[a-z]/)
+    .withMessage('Password must contain a lowercase letter')
+    .matches(/[0-9]/)
+    .withMessage('Password must contain a number')
+    .matches(/[^A-Za-z0-9]/)
+    .withMessage('Password must contain a special character'),
+  body('full_name').optional().trim().isLength({ max: 100 }),
 ];
 
 export async function register(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
@@ -27,7 +37,7 @@ export async function register(req: AuthRequest, res: Response, next: NextFuncti
 }
 
 export const loginValidation = [
-  body('email').isEmail().withMessage('Valid email is required'),
+  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
   body('password').notEmpty().withMessage('Password is required'),
 ];
 

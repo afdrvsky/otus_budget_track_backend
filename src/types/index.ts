@@ -30,10 +30,6 @@ export interface Transaction {
   updated_at: string;
 }
 
-export interface AuthRequest extends Request {
-  userId?: string;
-}
-
 export interface ApiError {
   status: number;
   message: string;

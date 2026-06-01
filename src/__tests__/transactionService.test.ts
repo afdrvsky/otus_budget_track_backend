@@ -176,10 +176,14 @@ describe('transactionService', () => {
   });
 
   describe('updateTransaction', () => {
-    it('should update a transaction', async () => {
+    it('should update a transaction with category validation', async () => {
       const updated = { id: 't1', amount: 200, categories: { id: 'c1', name: 'Food' } };
-      // updateTransaction uses .single() to resolve
+      let callCount = 0;
       (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return makeChain({ data: { id: 'c1', type: 'expense' }, error: null });
+        }
         return makeChain({ data: updated, error: null });
       });
 

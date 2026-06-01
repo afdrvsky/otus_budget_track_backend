@@ -49,7 +49,6 @@ export async function createTransaction(
   transactionDate: string,
   comment?: string,
 ): Promise<Transaction> {
-  // Verify category belongs to user and matches transaction type
   const { data: category } = await supabase
     .from('categories')
     .select('id, type')
@@ -99,9 +98,58 @@ export async function updateTransaction(
   },
 ): Promise<Transaction> {
   const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  if (updates.categoryId !== undefined) updateData.category_id = updates.categoryId;
+
+  if (updates.categoryId !== undefined) {
+    const { data: category } = await supabase
+      .from('categories')
+      .select('id, type')
+      .eq('id', updates.categoryId)
+      .eq('user_id', userId)
+      .single();
+
+    if (!category) {
+      throw createError(404, 'Category not found');
+    }
+
+    if (updates.type !== undefined && category.type !== updates.type) {
+      throw createError(
+        422,
+        `Category type "${category.type}" does not match transaction type "${updates.type}"`,
+      );
+    }
+
+    updateData.category_id = updates.categoryId;
+  }
+
+  if (updates.type !== undefined) {
+    if (updates.categoryId === undefined) {
+      const { data: transaction } = await supabase
+        .from('transactions')
+        .select('category_id')
+        .eq('id', transactionId)
+        .eq('user_id', userId)
+        .single();
+
+      if (transaction) {
+        const { data: existingCategory } = await supabase
+          .from('categories')
+          .select('type')
+          .eq('id', transaction.category_id)
+          .eq('user_id', userId)
+          .single();
+
+        if (existingCategory && existingCategory.type !== updates.type) {
+          throw createError(
+            422,
+            `Current category type "${existingCategory.type}" does not match new transaction type "${updates.type}"`,
+          );
+        }
+      }
+    }
+    updateData.type = updates.type;
+  }
+
   if (updates.amount !== undefined) updateData.amount = updates.amount;
-  if (updates.type !== undefined) updateData.type = updates.type;
   if (updates.comment !== undefined) updateData.comment = updates.comment;
   if (updates.transactionDate !== undefined) updateData.transaction_date = updates.transactionDate;
 

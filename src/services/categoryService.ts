@@ -81,7 +81,8 @@ export async function deleteCategory(userId: string, categoryId: string): Promis
   const { count } = await supabase
     .from('transactions')
     .select('*', { count: 'exact', head: true })
-    .eq('category_id', categoryId);
+    .eq('category_id', categoryId)
+    .eq('user_id', userId);
 
   if (count && count > 0) {
     throw createError(
