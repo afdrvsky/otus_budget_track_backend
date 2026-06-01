@@ -5,7 +5,11 @@ export interface AuthRequest extends Request {
   userId?: string;
 }
 
-export async function authMiddleware(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function authMiddleware(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {

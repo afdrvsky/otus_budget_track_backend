@@ -5,10 +5,17 @@ import { createError } from '../middleware/errorHandler';
 import * as categoryService from '../services/categoryService';
 
 export const getCategoriesValidation = [
-  query('type').optional().isIn(['income', 'expense']).withMessage('Type must be income or expense'),
+  query('type')
+    .optional()
+    .isIn(['income', 'expense'])
+    .withMessage('Type must be income or expense'),
 ];
 
-export async function getCategories(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function getCategories(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -26,12 +33,23 @@ export async function getCategories(req: AuthRequest, res: Response, next: NextF
 }
 
 export const createCategoryValidation = [
-  body('name').trim().notEmpty().withMessage('Name is required').isLength({ max: 30 }).withMessage('Name must be 30 characters or less'),
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
+    .isLength({ max: 30 })
+    .withMessage('Name must be 30 characters or less'),
   body('type').isIn(['income', 'expense']).withMessage('Type must be income or expense'),
-  body('color').matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Color must be a valid HEX color'),
+  body('color')
+    .matches(/^#[0-9A-Fa-f]{6}$/)
+    .withMessage('Color must be a valid HEX color'),
 ];
 
-export async function createCategory(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function createCategory(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -51,10 +69,16 @@ export async function createCategory(req: AuthRequest, res: Response, next: Next
 export const updateCategoryValidation = [
   param('id').isUUID().withMessage('Invalid category ID'),
   body('name').optional().trim().notEmpty().isLength({ max: 30 }),
-  body('color').optional().matches(/^#[0-9A-Fa-f]{6}$/),
+  body('color')
+    .optional()
+    .matches(/^#[0-9A-Fa-f]{6}$/),
 ];
 
-export async function updateCategory(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function updateCategory(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -72,11 +96,13 @@ export async function updateCategory(req: AuthRequest, res: Response, next: Next
   }
 }
 
-export const deleteCategoryValidation = [
-  param('id').isUUID().withMessage('Invalid category ID'),
-];
+export const deleteCategoryValidation = [param('id').isUUID().withMessage('Invalid category ID')];
 
-export async function deleteCategory(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function deleteCategory(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

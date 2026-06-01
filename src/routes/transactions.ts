@@ -1,9 +1,13 @@
 import { Router } from 'express';
 import {
-  getTransactions, getTransactionsValidation,
-  createTransaction, createTransactionValidation,
-  updateTransaction, updateTransactionValidation,
-  deleteTransaction, deleteTransactionValidation,
+  getTransactions,
+  getTransactionsValidation,
+  createTransaction,
+  createTransactionValidation,
+  updateTransaction,
+  updateTransactionValidation,
+  deleteTransaction,
+  deleteTransactionValidation,
 } from '../controllers/transactionController';
 import { authMiddleware } from '../middleware/auth';
 

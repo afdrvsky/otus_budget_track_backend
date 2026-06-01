@@ -5,7 +5,12 @@ export interface AppError extends Error {
   details?: unknown;
 }
 
-export function errorHandler(err: AppError, _req: Request, res: Response, _next: NextFunction): void {
+export function errorHandler(
+  err: AppError,
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+): void {
   const status = err.status || 500;
   const message = err.message || 'Internal server error';
 

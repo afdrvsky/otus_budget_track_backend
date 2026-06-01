@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import {
-  register, registerValidation,
-  login, loginValidation,
+  register,
+  registerValidation,
+  login,
+  loginValidation,
   logout,
-  recoverPassword, recoverValidation,
+  recoverPassword,
+  recoverValidation,
 } from '../controllers/authController';
 import { authMiddleware } from '../middleware/auth';
 

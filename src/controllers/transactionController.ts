@@ -11,7 +11,11 @@ export const getTransactionsValidation = [
   query('date_to').optional().isISO8601(),
 ];
 
-export async function getTransactions(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function getTransactions(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -40,7 +44,11 @@ export const createTransactionValidation = [
   body('comment').optional().isLength({ max: 500 }),
 ];
 
-export async function createTransaction(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function createTransaction(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -50,7 +58,12 @@ export async function createTransaction(req: AuthRequest, res: Response, next: N
     const userId = req.userId!;
     const { category_id, amount, type, transaction_date, comment } = req.body;
     const data = await transactionService.createTransaction(
-      userId, category_id, amount, type, transaction_date, comment
+      userId,
+      category_id,
+      amount,
+      type,
+      transaction_date,
+      comment,
     );
 
     res.status(201).json(data);
@@ -68,7 +81,11 @@ export const updateTransactionValidation = [
   body('comment').optional().isLength({ max: 500 }),
 ];
 
-export async function updateTransaction(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function updateTransaction(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -96,7 +113,11 @@ export const deleteTransactionValidation = [
   param('id').isUUID().withMessage('Invalid transaction ID'),
 ];
 
-export async function deleteTransaction(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function deleteTransaction(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

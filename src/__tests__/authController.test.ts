@@ -80,7 +80,7 @@ describe('authController', () => {
 
     it('should return 422 when service throws', async () => {
       (authService.register as ReturnType<typeof vi.fn>).mockRejectedValue(
-        Object.assign(new Error('User already registered'), { status: 422 })
+        Object.assign(new Error('User already registered'), { status: 422 }),
       );
 
       const app = createApp();

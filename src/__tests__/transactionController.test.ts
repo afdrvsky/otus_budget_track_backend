@@ -54,7 +54,9 @@ describe('transactionController', () => {
       const transactions = [
         { id: 't1', amount: 100, type: 'expense', categories: { id: 'c1', name: 'Food' } },
       ];
-      (transactionService.getTransactions as ReturnType<typeof vi.fn>).mockResolvedValue(transactions);
+      (transactionService.getTransactions as ReturnType<typeof vi.fn>).mockResolvedValue(
+        transactions,
+      );
 
       const res = await request(createApp()).get('/transactions');
 
@@ -65,7 +67,9 @@ describe('transactionController', () => {
     it('should pass filter params to service', async () => {
       (transactionService.getTransactions as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
-      await request(createApp()).get('/transactions?type=expense&category_id=00000000-0000-0000-0000-000000000000&date_from=2025-01-01&date_to=2025-12-31');
+      await request(createApp()).get(
+        '/transactions?type=expense&category_id=00000000-0000-0000-0000-000000000000&date_from=2025-01-01&date_to=2025-12-31',
+      );
 
       expect(transactionService.getTransactions).toHaveBeenCalledWith('test-user-id', {
         type: 'expense',
@@ -96,7 +100,12 @@ describe('transactionController', () => {
 
   describe('POST /transactions', () => {
     it('should create a transaction with valid data', async () => {
-      const newTx = { id: 't1', amount: 500, type: 'expense', categories: { id: 'c1', name: 'Food' } };
+      const newTx = {
+        id: 't1',
+        amount: 500,
+        type: 'expense',
+        categories: { id: 'c1', name: 'Food' },
+      };
       (transactionService.createTransaction as ReturnType<typeof vi.fn>).mockResolvedValue(newTx);
 
       const res = await request(createApp()).post('/transactions').send({
@@ -154,19 +163,24 @@ describe('transactionController', () => {
     });
 
     it('should return 422 for comment exceeding 500 chars', async () => {
-      const res = await request(createApp()).post('/transactions').send({
-        category_id: '00000000-0000-0000-0000-000000000000',
-        amount: 500,
-        type: 'expense',
-        transaction_date: '2025-01-15',
-        comment: 'A'.repeat(501),
-      });
+      const res = await request(createApp())
+        .post('/transactions')
+        .send({
+          category_id: '00000000-0000-0000-0000-000000000000',
+          amount: 500,
+          type: 'expense',
+          transaction_date: '2025-01-15',
+          comment: 'A'.repeat(501),
+        });
 
       expect(res.status).toBe(422);
     });
 
     it('should return 422 when category type mismatch', async () => {
-      const err = Object.assign(new Error('Category type "income" does not match transaction type "expense"'), { status: 422 });
+      const err = Object.assign(
+        new Error('Category type "income" does not match transaction type "expense"'),
+        { status: 422 },
+      );
       (transactionService.createTransaction as ReturnType<typeof vi.fn>).mockRejectedValue(err);
 
       const res = await request(createApp()).post('/transactions').send({
@@ -186,9 +200,11 @@ describe('transactionController', () => {
       const updated = { id: 't1', amount: 200, categories: { id: 'c1', name: 'Food' } };
       (transactionService.updateTransaction as ReturnType<typeof vi.fn>).mockResolvedValue(updated);
 
-      const res = await request(createApp()).put('/transactions/00000000-0000-0000-0000-000000000000').send({
-        amount: 200,
-      });
+      const res = await request(createApp())
+        .put('/transactions/00000000-0000-0000-0000-000000000000')
+        .send({
+          amount: 200,
+        });
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(updated);
@@ -206,9 +222,11 @@ describe('transactionController', () => {
       const err = Object.assign(new Error('Transaction not found'), { status: 404 });
       (transactionService.updateTransaction as ReturnType<typeof vi.fn>).mockRejectedValue(err);
 
-      const res = await request(createApp()).put('/transactions/00000000-0000-0000-0000-000000000000').send({
-        amount: 200,
-      });
+      const res = await request(createApp())
+        .put('/transactions/00000000-0000-0000-0000-000000000000')
+        .send({
+          amount: 200,
+        });
 
       expect(res.status).toBe(404);
     });
@@ -216,9 +234,13 @@ describe('transactionController', () => {
 
   describe('DELETE /transactions/:id', () => {
     it('should delete a transaction', async () => {
-      (transactionService.deleteTransaction as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+      (transactionService.deleteTransaction as ReturnType<typeof vi.fn>).mockResolvedValue(
+        undefined,
+      );
 
-      const res = await request(createApp()).delete('/transactions/00000000-0000-0000-0000-000000000000');
+      const res = await request(createApp()).delete(
+        '/transactions/00000000-0000-0000-0000-000000000000',
+      );
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Transaction deleted');
