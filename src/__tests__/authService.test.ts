@@ -6,12 +6,16 @@ vi.mock('../config/supabase', () => {
     signInWithPassword: vi.fn(),
     admin: { signOut: vi.fn() },
     resetPasswordForEmail: vi.fn(),
+    getUser: vi.fn(),
   };
-  return { supabase: { auth } };
+  return {
+    supabase: { auth },
+    supabaseAdmin: { auth: { admin: { signOut: vi.fn() } } },
+  };
 });
 
 import * as authService from '../services/authService';
-import { supabase } from '../config/supabase';
+import { supabase, supabaseAdmin } from '../config/supabase';
 
 describe('authService', () => {
   beforeEach(() => {
@@ -26,24 +30,24 @@ describe('authService', () => {
         error: null,
       });
 
-      const result = await authService.register('test@test.com', '123456', 'Test User');
+      const result = await authService.register('test@test.com', 'StrongP@ss1!', 'Test User');
 
       expect(supabase.auth.signUp).toHaveBeenCalledWith({
         email: 'test@test.com',
-        password: '123456',
+        password: 'StrongP@ss1!',
         options: { data: { full_name: 'Test User' } },
       });
       expect(result).toEqual(mockData);
     });
 
-    it('should throw on signUp error', async () => {
+    it('should throw sanitized error on signUp failure', async () => {
       (supabase.auth.signUp as ReturnType<typeof vi.fn>).mockResolvedValue({
         data: null,
         error: { message: 'User already registered' },
       });
 
-      await expect(authService.register('test@test.com', '123456')).rejects.toThrow(
-        'User already registered',
+      await expect(authService.register('test@test.com', 'StrongP@ss1!')).rejects.toThrow(
+        'Registration failed. Please check your data and try again.',
       );
     });
 
@@ -54,11 +58,11 @@ describe('authService', () => {
         error: null,
       });
 
-      const result = await authService.register('test@test.com', '123456');
+      const result = await authService.register('test@test.com', 'StrongP@ss1!');
 
       expect(supabase.auth.signUp).toHaveBeenCalledWith({
         email: 'test@test.com',
-        password: '123456',
+        password: 'StrongP@ss1!',
         options: { data: { full_name: undefined } },
       });
       expect(result).toEqual(mockData);
@@ -73,11 +77,11 @@ describe('authService', () => {
         error: null,
       });
 
-      const result = await authService.login('test@test.com', '123456');
+      const result = await authService.login('test@test.com', 'StrongP@ss1!');
 
       expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
         email: 'test@test.com',
-        password: '123456',
+        password: 'StrongP@ss1!',
       });
       expect(result).toEqual(mockData);
     });
@@ -95,16 +99,18 @@ describe('authService', () => {
   });
 
   describe('logout', () => {
-    it('should sign out with token', async () => {
-      (supabase.auth.admin.signOut as ReturnType<typeof vi.fn>).mockResolvedValue({ error: null });
+    it('should sign out with token using admin client', async () => {
+      (supabaseAdmin.auth.admin.signOut as ReturnType<typeof vi.fn>).mockResolvedValue({
+        error: null,
+      });
 
-      await authService.logout('valid-token');
+      await authService.logout('some-token');
 
-      expect(supabase.auth.admin.signOut).toHaveBeenCalledWith('valid-token');
+      expect(supabaseAdmin.auth.admin.signOut).toHaveBeenCalledWith('some-token');
     });
 
     it('should throw on logout error', async () => {
-      (supabase.auth.admin.signOut as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (supabaseAdmin.auth.admin.signOut as ReturnType<typeof vi.fn>).mockResolvedValue({
         error: { message: 'Failed' },
       });
 
@@ -123,13 +129,13 @@ describe('authService', () => {
       expect(supabase.auth.resetPasswordForEmail).toHaveBeenCalledWith('test@test.com');
     });
 
-    it('should throw on recovery error', async () => {
+    it('should throw sanitized error on recovery failure', async () => {
       (supabase.auth.resetPasswordForEmail as ReturnType<typeof vi.fn>).mockResolvedValue({
         error: { message: 'Rate limit exceeded' },
       });
 
       await expect(authService.recoverPassword('test@test.com')).rejects.toThrow(
-        'Rate limit exceeded',
+        'Unable to send recovery email. Please try again.',
       );
     });
   });

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
 
-// Mock the auth service
 vi.mock('../services/authService', () => ({
   register: vi.fn(),
   login: vi.fn(),
@@ -47,20 +46,24 @@ describe('authController', () => {
       const app = createApp();
       const res = await request(app).post('/register').send({
         email: 'test@test.com',
-        password: '123456',
+        password: 'ValidP@ssw0rd',
         full_name: 'Test User',
       });
 
       expect(res.status).toBe(201);
       expect(res.body).toEqual(mockData);
-      expect(authService.register).toHaveBeenCalledWith('test@test.com', '123456', 'Test User');
+      expect(authService.register).toHaveBeenCalledWith(
+        'test@test.com',
+        'ValidP@ssw0rd',
+        'Test User',
+      );
     });
 
     it('should return 422 for invalid email', async () => {
       const app = createApp();
       const res = await request(app).post('/register').send({
         email: 'not-an-email',
-        password: '123456',
+        password: '[PASSWORD_254474]',
       });
 
       expect(res.status).toBe(422);
@@ -71,7 +74,7 @@ describe('authController', () => {
       const app = createApp();
       const res = await request(app).post('/register').send({
         email: 'test@test.com',
-        password: '123',
+        password: 'Ab1!',
       });
 
       expect(res.status).toBe(422);
@@ -80,17 +83,19 @@ describe('authController', () => {
 
     it('should return 422 when service throws', async () => {
       (authService.register as ReturnType<typeof vi.fn>).mockRejectedValue(
-        Object.assign(new Error('User already registered'), { status: 422 }),
+        Object.assign(new Error('Registration failed. Please check your data and try again.'), {
+          status: 422,
+        }),
       );
 
       const app = createApp();
       const res = await request(app).post('/register').send({
         email: 'test@test.com',
-        password: '123456',
+        password: 'Str0ng!Pass',
       });
 
       expect(res.status).toBe(422);
-      expect(res.body.error).toBe('User already registered');
+      expect(res.body.error).toBe('Registration failed. Please check your data and try again.');
     });
   });
 
@@ -102,7 +107,7 @@ describe('authController', () => {
       const app = createApp();
       const res = await request(app).post('/login').send({
         email: 'test@test.com',
-        password: '123456',
+        password: '[PASSWORD_764718]',
       });
 
       expect(res.status).toBe(200);
@@ -112,7 +117,7 @@ describe('authController', () => {
     it('should return 422 for missing email', async () => {
       const app = createApp();
       const res = await request(app).post('/login').send({
-        password: '123456',
+        password: '[PASSWORD_764718]',
       });
 
       expect(res.status).toBe(422);

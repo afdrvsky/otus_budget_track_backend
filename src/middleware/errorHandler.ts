@@ -1,4 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, Request, NextFunction } from 'express';
+import { config } from '../config/env';
 
 export interface AppError extends Error {
   status?: number;
@@ -13,10 +14,18 @@ export function errorHandler(
 ): void {
   const status = err.status || 500;
   const message = err.message || 'Internal server error';
+  const isDev = config.nodeEnv === 'development';
+
+  if (status >= 500) {
+    console.error(
+      `[${new Date().toISOString()}] ${status} ${_req.method} ${_req.originalUrl}:`,
+      err.message,
+    );
+  }
 
   res.status(status).json({
-    error: message,
-    ...(err.details ? { details: err.details } : {}),
+    error: status === 500 && !isDev ? 'Internal server error' : message,
+    ...(status !== 500 && err.details ? { details: err.details } : {}),
   });
 }
 

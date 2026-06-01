@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { supabase, supabaseAdmin } from '../config/supabase';
 import { createError } from '../middleware/errorHandler';
 
 export async function register(email: string, password: string, fullName?: string) {
@@ -11,7 +11,7 @@ export async function register(email: string, password: string, fullName?: strin
   });
 
   if (error) {
-    throw createError(422, error.message);
+    throw createError(422, 'Registration failed. Please check your data and try again.');
   }
 
   return data;
@@ -28,7 +28,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function logout(token: string) {
-  const { error } = await supabase.auth.admin.signOut(token);
+  const { error } = await supabaseAdmin.auth.admin.signOut(token);
 
   if (error) {
     throw createError(500, 'Failed to logout');
@@ -39,6 +39,6 @@ export async function recoverPassword(email: string) {
   const { error } = await supabase.auth.resetPasswordForEmail(email);
 
   if (error) {
-    throw createError(422, error.message);
+    throw createError(422, 'Unable to send recovery email. Please try again.');
   }
 }
