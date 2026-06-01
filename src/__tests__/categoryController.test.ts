@@ -93,7 +93,12 @@ describe('categoryController', () => {
 
       expect(res.status).toBe(201);
       expect(res.body).toEqual(newCat);
-      expect(categoryService.createCategory).toHaveBeenCalledWith('test-user-id', 'Taxi', 'expense', '#3B82F6');
+      expect(categoryService.createCategory).toHaveBeenCalledWith(
+        'test-user-id',
+        'Taxi',
+        'expense',
+        '#3B82F6',
+      );
     });
 
     it('should return 422 for missing name', async () => {
@@ -126,11 +131,13 @@ describe('categoryController', () => {
     });
 
     it('should return 422 for name exceeding 30 chars', async () => {
-      const res = await request(createApp()).post('/categories').send({
-        name: 'A'.repeat(31),
-        type: 'expense',
-        color: '#3B82F6',
-      });
+      const res = await request(createApp())
+        .post('/categories')
+        .send({
+          name: 'A'.repeat(31),
+          type: 'expense',
+          color: '#3B82F6',
+        });
 
       expect(res.status).toBe(422);
     });
@@ -141,10 +148,12 @@ describe('categoryController', () => {
       const updated = { id: '1', name: 'Groceries', color: '#EF4444' };
       (categoryService.updateCategory as ReturnType<typeof vi.fn>).mockResolvedValue(updated);
 
-      const res = await request(createApp()).put('/categories/00000000-0000-0000-0000-000000000000').send({
-        name: 'Groceries',
-        color: '#EF4444',
-      });
+      const res = await request(createApp())
+        .put('/categories/00000000-0000-0000-0000-000000000000')
+        .send({
+          name: 'Groceries',
+          color: '#EF4444',
+        });
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(updated);
@@ -162,9 +171,11 @@ describe('categoryController', () => {
       const err = Object.assign(new Error('Category not found'), { status: 404 });
       (categoryService.updateCategory as ReturnType<typeof vi.fn>).mockRejectedValue(err);
 
-      const res = await request(createApp()).put('/categories/00000000-0000-0000-0000-000000000000').send({
-        name: 'New',
-      });
+      const res = await request(createApp())
+        .put('/categories/00000000-0000-0000-0000-000000000000')
+        .send({
+          name: 'New',
+        });
 
       expect(res.status).toBe(404);
     });
@@ -174,7 +185,9 @@ describe('categoryController', () => {
     it('should delete a category', async () => {
       (categoryService.deleteCategory as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 
-      const res = await request(createApp()).delete('/categories/00000000-0000-0000-0000-000000000000');
+      const res = await request(createApp()).delete(
+        '/categories/00000000-0000-0000-0000-000000000000',
+      );
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Category deleted');
@@ -187,10 +200,15 @@ describe('categoryController', () => {
     });
 
     it('should return 422 when linked transactions exist', async () => {
-      const err = Object.assign(new Error('Cannot delete category: 3 linked transaction(s) exist'), { status: 422 });
+      const err = Object.assign(
+        new Error('Cannot delete category: 3 linked transaction(s) exist'),
+        { status: 422 },
+      );
       (categoryService.deleteCategory as ReturnType<typeof vi.fn>).mockRejectedValue(err);
 
-      const res = await request(createApp()).delete('/categories/00000000-0000-0000-0000-000000000000');
+      const res = await request(createApp()).delete(
+        '/categories/00000000-0000-0000-0000-000000000000',
+      );
 
       expect(res.status).toBe(422);
       expect(res.body.error).toContain('linked transaction');

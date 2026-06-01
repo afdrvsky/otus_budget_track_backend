@@ -11,7 +11,7 @@ interface TransactionFilters {
 
 export async function getTransactions(
   userId: string,
-  filters: TransactionFilters
+  filters: TransactionFilters,
 ): Promise<Transaction[]> {
   let query = supabase
     .from('transactions')
@@ -47,7 +47,7 @@ export async function createTransaction(
   amount: number,
   type: string,
   transactionDate: string,
-  comment?: string
+  comment?: string,
 ): Promise<Transaction> {
   // Verify category belongs to user and matches transaction type
   const { data: category } = await supabase
@@ -61,7 +61,10 @@ export async function createTransaction(
     throw createError(404, 'Category not found');
   }
   if (category.type !== type) {
-    throw createError(422, `Category type "${category.type}" does not match transaction type "${type}"`);
+    throw createError(
+      422,
+      `Category type "${category.type}" does not match transaction type "${type}"`,
+    );
   }
 
   const { data, error } = await supabase
@@ -93,7 +96,7 @@ export async function updateTransaction(
     type?: string;
     comment?: string;
     transactionDate?: string;
-  }
+  },
 ): Promise<Transaction> {
   const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (updates.categoryId !== undefined) updateData.category_id = updates.categoryId;

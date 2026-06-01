@@ -21,7 +21,10 @@ describe('authService', () => {
   describe('register', () => {
     it('should register a user and return data', async () => {
       const mockData = { user: { id: '1', email: 'test@test.com' }, session: {} };
-      (supabase.auth.signUp as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockData, error: null });
+      (supabase.auth.signUp as ReturnType<typeof vi.fn>).mockResolvedValue({
+        data: mockData,
+        error: null,
+      });
 
       const result = await authService.register('test@test.com', '123456', 'Test User');
 
@@ -39,12 +42,17 @@ describe('authService', () => {
         error: { message: 'User already registered' },
       });
 
-      await expect(authService.register('test@test.com', '123456')).rejects.toThrow('User already registered');
+      await expect(authService.register('test@test.com', '123456')).rejects.toThrow(
+        'User already registered',
+      );
     });
 
     it('should register without full_name', async () => {
       const mockData = { user: { id: '1' }, session: {} };
-      (supabase.auth.signUp as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockData, error: null });
+      (supabase.auth.signUp as ReturnType<typeof vi.fn>).mockResolvedValue({
+        data: mockData,
+        error: null,
+      });
 
       const result = await authService.register('test@test.com', '123456');
 
@@ -67,7 +75,10 @@ describe('authService', () => {
 
       const result = await authService.login('test@test.com', '123456');
 
-      expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({ email: 'test@test.com', password: '123456' });
+      expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+        email: 'test@test.com',
+        password: '123456',
+      });
       expect(result).toEqual(mockData);
     });
 
@@ -77,7 +88,9 @@ describe('authService', () => {
         error: { message: 'Invalid credentials' },
       });
 
-      await expect(authService.login('test@test.com', 'wrong')).rejects.toThrow('Invalid email or password');
+      await expect(authService.login('test@test.com', 'wrong')).rejects.toThrow(
+        'Invalid email or password',
+      );
     });
   });
 
@@ -101,7 +114,9 @@ describe('authService', () => {
 
   describe('recoverPassword', () => {
     it('should send recovery email', async () => {
-      (supabase.auth.resetPasswordForEmail as ReturnType<typeof vi.fn>).mockResolvedValue({ error: null });
+      (supabase.auth.resetPasswordForEmail as ReturnType<typeof vi.fn>).mockResolvedValue({
+        error: null,
+      });
 
       await authService.recoverPassword('test@test.com');
 
@@ -113,7 +128,9 @@ describe('authService', () => {
         error: { message: 'Rate limit exceeded' },
       });
 
-      await expect(authService.recoverPassword('test@test.com')).rejects.toThrow('Rate limit exceeded');
+      await expect(authService.recoverPassword('test@test.com')).rejects.toThrow(
+        'Rate limit exceeded',
+      );
     });
   });
 });

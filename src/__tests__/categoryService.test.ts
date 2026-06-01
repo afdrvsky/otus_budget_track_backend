@@ -24,7 +24,16 @@ function resetChain() {
 
 function makeChain() {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {};
-  const methods = ['select', 'insert', 'update', 'delete', 'eq', 'order', 'single', 'select_star_head_count'];
+  const methods = [
+    'select',
+    'insert',
+    'update',
+    'delete',
+    'eq',
+    'order',
+    'single',
+    'select_star_head_count',
+  ];
 
   const self: Record<string, unknown> = {};
 
@@ -36,10 +45,13 @@ function makeChain() {
   chain['select_star_head_count'] = vi.fn(() => self);
 
   // single returns a promise
-  chain.single.mockImplementation(() => Promise.resolve({ data: mockChain.data, error: mockChain.error }));
+  chain.single.mockImplementation(() =>
+    Promise.resolve({ data: mockChain.data, error: mockChain.error }),
+  );
 
   // The chain itself is thenable
-  self.then = (resolve: (v: unknown) => void) => resolve({ data: mockChain.data, error: mockChain.error });
+  self.then = (resolve: (v: unknown) => void) =>
+    resolve({ data: mockChain.data, error: mockChain.error });
   self.catch = () => Promise.resolve({ data: mockChain.data, error: mockChain.error });
 
   // Wire up methods
@@ -109,13 +121,22 @@ describe('categoryService', () => {
       const { self } = makeChain();
       currentSelf = self;
 
-      await expect(categoryService.getCategories('u1')).rejects.toThrow('Failed to fetch categories');
+      await expect(categoryService.getCategories('u1')).rejects.toThrow(
+        'Failed to fetch categories',
+      );
     });
   });
 
   describe('createCategory', () => {
     it('should create a category and return it', async () => {
-      const newCat = { id: '3', user_id: 'u1', name: 'Taxi', type: 'expense', color: '#3B82F6', is_default: false };
+      const newCat = {
+        id: '3',
+        user_id: 'u1',
+        name: 'Taxi',
+        type: 'expense',
+        color: '#3B82F6',
+        is_default: false,
+      };
       mockChain.data = newCat;
       mockChain.error = null;
 
@@ -124,7 +145,13 @@ describe('categoryService', () => {
 
       const result = await categoryService.createCategory('u1', 'Taxi', 'expense', '#3B82F6');
 
-      expect(chain.insert).toHaveBeenCalledWith({ user_id: 'u1', name: 'Taxi', type: 'expense', color: '#3B82F6', is_default: false });
+      expect(chain.insert).toHaveBeenCalledWith({
+        user_id: 'u1',
+        name: 'Taxi',
+        type: 'expense',
+        color: '#3B82F6',
+        is_default: false,
+      });
       expect(result).toEqual(newCat);
     });
 
@@ -135,9 +162,9 @@ describe('categoryService', () => {
       const { self } = makeChain();
       currentSelf = self;
 
-      await expect(categoryService.createCategory('u1', 'Food', 'expense', '#EF4444')).rejects.toThrow(
-        'Category "Food" already exists for type "expense"'
-      );
+      await expect(
+        categoryService.createCategory('u1', 'Food', 'expense', '#EF4444'),
+      ).rejects.toThrow('Category "Food" already exists for type "expense"');
     });
 
     it('should throw 500 on other insert errors', async () => {
@@ -147,9 +174,9 @@ describe('categoryService', () => {
       const { self } = makeChain();
       currentSelf = self;
 
-      await expect(categoryService.createCategory('u1', 'Food', 'expense', '#EF4444')).rejects.toThrow(
-        'Failed to create category'
-      );
+      await expect(
+        categoryService.createCategory('u1', 'Food', 'expense', '#EF4444'),
+      ).rejects.toThrow('Failed to create category');
     });
   });
 
@@ -175,7 +202,9 @@ describe('categoryService', () => {
       const { self } = makeChain();
       currentSelf = self;
 
-      await expect(categoryService.updateCategory('u1', 'nonexistent', 'New')).rejects.toThrow('Category not found');
+      await expect(categoryService.updateCategory('u1', 'nonexistent', 'New')).rejects.toThrow(
+        'Category not found',
+      );
     });
 
     it('should throw 422 on duplicate name (unique violation)', async () => {
@@ -186,7 +215,7 @@ describe('categoryService', () => {
       currentSelf = self;
 
       await expect(categoryService.updateCategory('u1', '1', 'Existing')).rejects.toThrow(
-        'Category "Existing" already exists'
+        'Category "Existing" already exists',
       );
     });
   });
@@ -204,7 +233,8 @@ describe('categoryService', () => {
         if (callCount === 1) {
           // transactions count query
           const countSelf: Record<string, unknown> = {};
-          countSelf.then = (resolve: (v: unknown) => void) => resolve({ data: [], error: null, count: 0 });
+          countSelf.then = (resolve: (v: unknown) => void) =>
+            resolve({ data: [], error: null, count: 0 });
           countSelf.select = vi.fn(() => countSelf);
           countSelf.eq = vi.fn(() => countSelf);
           return countSelf;
@@ -221,14 +251,15 @@ describe('categoryService', () => {
     it('should throw 422 when linked transactions exist', async () => {
       (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         const countSelf: Record<string, unknown> = {};
-        countSelf.then = (resolve: (v: unknown) => void) => resolve({ data: [], error: null, count: 5 });
+        countSelf.then = (resolve: (v: unknown) => void) =>
+          resolve({ data: [], error: null, count: 5 });
         countSelf.select = vi.fn(() => countSelf);
         countSelf.eq = vi.fn(() => countSelf);
         return countSelf;
       });
 
       await expect(categoryService.deleteCategory('u1', '1')).rejects.toThrow(
-        'Cannot delete category: 5 linked transaction(s) exist'
+        'Cannot delete category: 5 linked transaction(s) exist',
       );
     });
   });

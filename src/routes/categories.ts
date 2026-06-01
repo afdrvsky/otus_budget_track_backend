@@ -1,9 +1,13 @@
 import { Router } from 'express';
 import {
-  getCategories, getCategoriesValidation,
-  createCategory, createCategoryValidation,
-  updateCategory, updateCategoryValidation,
-  deleteCategory, deleteCategoryValidation,
+  getCategories,
+  getCategoriesValidation,
+  createCategory,
+  createCategoryValidation,
+  updateCategory,
+  updateCategoryValidation,
+  deleteCategory,
+  deleteCategoryValidation,
 } from '../controllers/categoryController';
 import { authMiddleware } from '../middleware/auth';
 

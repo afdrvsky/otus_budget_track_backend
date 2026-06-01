@@ -61,11 +61,13 @@ export async function logout(req: AuthRequest, res: Response, next: NextFunction
   }
 }
 
-export const recoverValidation = [
-  body('email').isEmail().withMessage('Valid email is required'),
-];
+export const recoverValidation = [body('email').isEmail().withMessage('Valid email is required')];
 
-export async function recoverPassword(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function recoverPassword(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

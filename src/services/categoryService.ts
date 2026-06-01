@@ -26,7 +26,7 @@ export async function createCategory(
   userId: string,
   name: string,
   type: string,
-  color: string
+  color: string,
 ): Promise<Category> {
   const { data, error } = await supabase
     .from('categories')
@@ -48,7 +48,7 @@ export async function updateCategory(
   userId: string,
   categoryId: string,
   name?: string,
-  color?: string
+  color?: string,
 ): Promise<Category> {
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (name !== undefined) updates.name = name;
@@ -84,7 +84,10 @@ export async function deleteCategory(userId: string, categoryId: string): Promis
     .eq('category_id', categoryId);
 
   if (count && count > 0) {
-    throw createError(422, `Cannot delete category: ${count} linked transaction(s) exist. Reassign them first.`);
+    throw createError(
+      422,
+      `Cannot delete category: ${count} linked transaction(s) exist. Reassign them first.`,
+    );
   }
 
   const { error } = await supabase

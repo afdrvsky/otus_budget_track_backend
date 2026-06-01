@@ -42,7 +42,13 @@ describe('transactionService', () => {
   describe('getTransactions', () => {
     it('should fetch all transactions for a user', async () => {
       const transactions = [
-        { id: 't1', user_id: 'u1', amount: 100, type: 'expense', categories: { id: 'c1', name: 'Food' } },
+        {
+          id: 't1',
+          user_id: 'u1',
+          amount: 100,
+          type: 'expense',
+          categories: { id: 'c1', name: 'Food' },
+        },
       ];
       mockResult = { data: transactions, error: null };
 
@@ -57,7 +63,10 @@ describe('transactionService', () => {
 
       await transactionService.getTransactions('u1', { type: 'expense' });
 
-      const chain = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<string, ReturnType<typeof vi.fn>>;
+      const chain = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
+        string,
+        ReturnType<typeof vi.fn>
+      >;
       expect(chain.eq).toHaveBeenCalledWith('type', 'expense');
     });
 
@@ -69,7 +78,10 @@ describe('transactionService', () => {
         dateTo: '2025-12-31',
       });
 
-      const chain = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<string, ReturnType<typeof vi.fn>>;
+      const chain = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
+        string,
+        ReturnType<typeof vi.fn>
+      >;
       expect(chain.gte).toHaveBeenCalledWith('transaction_date', '2025-01-01');
       expect(chain.lte).toHaveBeenCalledWith('transaction_date', '2025-12-31');
     });
@@ -79,20 +91,30 @@ describe('transactionService', () => {
 
       await transactionService.getTransactions('u1', { categoryId: 'c1' });
 
-      const chain = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<string, ReturnType<typeof vi.fn>>;
+      const chain = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
+        string,
+        ReturnType<typeof vi.fn>
+      >;
       expect(chain.eq).toHaveBeenCalledWith('category_id', 'c1');
     });
 
     it('should throw on fetch error', async () => {
       mockResult = { data: null, error: { message: 'DB error' } };
 
-      await expect(transactionService.getTransactions('u1', {})).rejects.toThrow('Failed to fetch transactions');
+      await expect(transactionService.getTransactions('u1', {})).rejects.toThrow(
+        'Failed to fetch transactions',
+      );
     });
   });
 
   describe('createTransaction', () => {
     it('should create a transaction when category type matches', async () => {
-      const newTx = { id: 't1', amount: 500, type: 'expense', categories: { id: 'c1', name: 'Food' } };
+      const newTx = {
+        id: 't1',
+        amount: 500,
+        type: 'expense',
+        categories: { id: 'c1', name: 'Food' },
+      };
 
       let callCount = 0;
       (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
@@ -105,7 +127,14 @@ describe('transactionService', () => {
         return makeChain({ data: newTx, error: null });
       });
 
-      const result = await transactionService.createTransaction('u1', 'c1', 500, 'expense', '2025-01-15', 'Lunch');
+      const result = await transactionService.createTransaction(
+        'u1',
+        'c1',
+        500,
+        'expense',
+        '2025-01-15',
+        'Lunch',
+      );
 
       expect(result).toEqual(newTx);
     });
@@ -116,7 +145,7 @@ describe('transactionService', () => {
       });
 
       await expect(
-        transactionService.createTransaction('u1', 'nonexistent', 100, 'expense', '2025-01-15')
+        transactionService.createTransaction('u1', 'nonexistent', 100, 'expense', '2025-01-15'),
       ).rejects.toThrow('Category not found');
     });
 
@@ -126,7 +155,7 @@ describe('transactionService', () => {
       });
 
       await expect(
-        transactionService.createTransaction('u1', 'c1', 100, 'expense', '2025-01-15')
+        transactionService.createTransaction('u1', 'c1', 100, 'expense', '2025-01-15'),
       ).rejects.toThrow('Category type "income" does not match transaction type "expense"');
     });
 
@@ -141,7 +170,7 @@ describe('transactionService', () => {
       });
 
       await expect(
-        transactionService.createTransaction('u1', 'c1', 100, 'expense', '2025-01-15')
+        transactionService.createTransaction('u1', 'c1', 100, 'expense', '2025-01-15'),
       ).rejects.toThrow('Failed to create transaction');
     });
   });
@@ -171,7 +200,7 @@ describe('transactionService', () => {
       });
 
       await expect(
-        transactionService.updateTransaction('u1', 'nonexistent', { amount: 200 })
+        transactionService.updateTransaction('u1', 'nonexistent', { amount: 200 }),
       ).rejects.toThrow('Transaction not found');
     });
 
@@ -181,7 +210,7 @@ describe('transactionService', () => {
       });
 
       await expect(
-        transactionService.updateTransaction('u1', 't1', { amount: 200 })
+        transactionService.updateTransaction('u1', 't1', { amount: 200 }),
       ).rejects.toThrow('Failed to update transaction');
     });
   });
@@ -203,7 +232,9 @@ describe('transactionService', () => {
         return makeChain({ data: null, error: { message: 'Delete failed' } });
       });
 
-      await expect(transactionService.deleteTransaction('u1', 't1')).rejects.toThrow('Failed to delete transaction');
+      await expect(transactionService.deleteTransaction('u1', 't1')).rejects.toThrow(
+        'Failed to delete transaction',
+      );
     });
   });
 });
