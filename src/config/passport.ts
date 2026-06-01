@@ -16,9 +16,9 @@ function getCallbackUrl(): string {
     if (!domain) {
       throw new Error('APP_BASE_URL env variable is required in production');
     }
-    return `${domain}/auth/google/callback`;
+    return `${domain}/api/auth/google/callback`;
   }
-  return `http://localhost:${config.port}/auth/google/callback`;
+  return `http://localhost:${config.port}/api/auth/google/callback`;
 }
 
 export function configurePassport(): void {

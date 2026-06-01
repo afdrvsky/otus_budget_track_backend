@@ -43,7 +43,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/api/auth', authLimiter, authRoutes);
-app.use('/auth', authLimiter, googleAuthRoutes);
+app.use('/api/auth', authLimiter, googleAuthRoutes);
 app.use('/api', generalLimiter);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/transactions', transactionRoutes);
