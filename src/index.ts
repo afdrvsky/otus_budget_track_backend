@@ -25,7 +25,7 @@ app.use(express.json({ limit: '10kb' }));
 app.use(requestLogger);
 
 app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/auth', authLimiter, googleAuthRoutes);
+app.use('/api/auth', googleAuthRoutes);
 app.use('/api', generalLimiter);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/transactions', transactionRoutes);
