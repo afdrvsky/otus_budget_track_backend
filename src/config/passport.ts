@@ -1,5 +1,5 @@
 import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oidc';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { config } from './env';
 
 interface GoogleProfile {
@@ -42,10 +42,10 @@ export function configurePassport(): void {
         clientID: config.googleClientId,
         clientSecret: config.googleClientSecret,
         callbackURL,
-        scope: ['profile', 'email'],
       },
       (
-        issuer: string,
+        accessToken: string,
+        refreshToken: string,
         profile: GoogleProfile,
         cb: (err: Error | null, user?: GoogleProfile) => void,
       ) => {

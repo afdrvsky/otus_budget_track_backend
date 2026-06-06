@@ -160,7 +160,7 @@ describe('categoryController', () => {
     });
 
     it('should return 422 for invalid id format', async () => {
-      const res = await request(createApp()).put('/categories/not-a-uuid').send({
+      const res = await request(createApp()).put('/categories/invalid').send({
         name: 'Groceries',
       });
 

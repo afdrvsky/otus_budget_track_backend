@@ -1,4 +1,4 @@
-declare module 'passport-google-oidc' {
+declare module 'passport-google-oauth20' {
   import { Strategy as PassportStrategy } from 'passport';
 
   interface GoogleStrategyOptions {
@@ -19,12 +19,16 @@ declare module 'passport-google-oidc' {
     _json?: Record<string, unknown>;
   }
 
-  interface VerifyFunction {
-    (issuer: string, profile: GoogleProfile, cb: (err: Error | null, user?: unknown) => void): void;
-  }
-
   export class Strategy extends PassportStrategy {
-    constructor(options: GoogleStrategyOptions, verify: VerifyFunction);
+    constructor(
+      options: GoogleStrategyOptions,
+      verify: (
+        accessToken: string,
+        refreshToken: string,
+        profile: GoogleProfile,
+        done: (err: Error | null, user?: unknown) => void,
+      ) => void,
+    );
     name: string;
   }
 }
