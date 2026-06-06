@@ -11,14 +11,8 @@ interface GoogleProfile {
 }
 
 function getCallbackUrl(): string {
-  if (config.nodeEnv === 'production') {
-    const domain = process.env.APP_BASE_URL;
-    if (!domain) {
-      throw new Error('APP_BASE_URL env variable is required in production');
-    }
-    return `${domain}/api/auth/google/callback`;
-  }
-  return `http://localhost:${config.port}/api/auth/google/callback`;
+  const baseUrl = process.env.APP_BASE_URL || `http://localhost:${config.port}`;
+  return `${baseUrl}/api/auth/google/callback`;
 }
 
 export function configurePassport(): void {
@@ -37,12 +31,15 @@ export function configurePassport(): void {
     return;
   }
 
+  const callbackURL = getCallbackUrl();
+  console.log(`[Passport] Google OAuth callback URL: ${callbackURL}`);
+
   passport.use(
     new GoogleStrategy(
       {
         clientID: config.googleClientId,
         clientSecret: config.googleClientSecret,
-        callbackURL: getCallbackUrl(),
+        callbackURL,
         scope: ['profile', 'email'],
       },
       (

@@ -4,18 +4,28 @@ import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 
 const router = Router();
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
 
 router.get('/google/callback', (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('google', {
-    failureRedirect: '/login',
-    failureMessage: true,
-  })(req, res, (err?: unknown) => {
+  passport.authenticate('google', (err: unknown, user: Express.User | false) => {
     if (err) {
+      console.error('[Google OAuth] Callback error:', err);
       return next(err);
     }
-    res.redirect('/dashboard');
-  });
+    if (!user) {
+      console.warn('[Google OAuth] No user returned from Google');
+      return res.redirect('/login');
+    }
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        console.error('[Google OAuth] Login error:', loginErr);
+        return next(loginErr);
+      }
+      res.redirect('/dashboard');
+    });
+  })(req, res, next);
 });
 
 router.get('/user', ensureAuthenticated, (req: Request, res: Response) => {
