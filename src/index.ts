@@ -10,6 +10,9 @@ import categoryRoutes from './routes/categories';
 import transactionRoutes from './routes/transactions';
 import googleAuthRoutes from './routes/googleAuth';
 
+import { authMiddleware } from './middleware/auth';
+import { getCurrentUser } from './services/authService';
+
 const app = express();
 
 app.set('trust proxy', 1);
@@ -32,6 +35,16 @@ app.use('/api/transactions', transactionRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+app.get('/api/user', authMiddleware, async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    const user = await getCurrentUser(token!);
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.get('/dashboard', (_req, res) => {

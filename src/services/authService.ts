@@ -35,6 +35,25 @@ export async function logout(token: string) {
   }
 }
 
+export async function getCurrentUser(token: string) {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
+
+  if (error || !user) {
+    throw createError(401, 'Invalid or expired token');
+  }
+
+  return {
+    id: user.id,
+    email: user.email ?? '',
+    user_metadata: user.user_metadata,
+    name: user.user_metadata?.full_name,
+    avatar_url: user.user_metadata?.avatar_url,
+  };
+}
+
 export async function recoverPassword(email: string) {
   const { error } = await supabase.auth.resetPasswordForEmail(email);
 
