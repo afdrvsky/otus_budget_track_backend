@@ -11,4 +11,5 @@ export const config = {
   sessionSecret: process.env.SESSION_SECRET || 'change-me-in-production',
   googleClientId: process.env.GOOGLE_CLIENT_ID || '',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
 };

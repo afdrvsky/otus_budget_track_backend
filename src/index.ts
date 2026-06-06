@@ -1,12 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import session from 'express-session';
 import { config } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 import { authLimiter, generalLimiter } from './middleware/rateLimiter';
 import { requestLogger } from './middleware/requestLogger';
-import { configurePassport, default as passport } from './config/passport';
 import authRoutes from './routes/auth';
 import categoryRoutes from './routes/categories';
 import transactionRoutes from './routes/transactions';
@@ -25,24 +23,6 @@ app.use(
 );
 app.use(express.json({ limit: '10kb' }));
 app.use(requestLogger);
-
-app.use(
-  session({
-    secret: config.sessionSecret,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: config.nodeEnv === 'production',
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-      sameSite: config.nodeEnv === 'production' ? 'strict' : 'lax',
-    },
-  }),
-);
-
-configurePassport();
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/auth', authLimiter, googleAuthRoutes);

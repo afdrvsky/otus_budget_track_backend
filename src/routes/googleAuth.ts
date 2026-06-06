@@ -1,31 +1,24 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import passport from '../config/passport';
+import { Router, Request, Response } from 'express';
+import { supabase } from '../config/supabase';
+import { config } from '../config/env';
 import { ensureAuthenticated } from '../middleware/ensureAuthenticated';
 
 const router = Router();
 
-router.get('/google', (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
-});
+router.get('/google', async (_req: Request, res: Response) => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${config.frontendUrl}/auth/callback`,
+    },
+  });
 
-router.get('/google/callback', (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('google', (err: unknown, user: Express.User | false) => {
-    if (err) {
-      console.error('[Google OAuth] Callback error:', err);
-      return next(err);
-    }
-    if (!user) {
-      console.warn('[Google OAuth] No user returned from Google');
-      return res.redirect('/login');
-    }
-    req.logIn(user, (loginErr) => {
-      if (loginErr) {
-        console.error('[Google OAuth] Login error:', loginErr);
-        return next(loginErr);
-      }
-      res.redirect('/dashboard');
-    });
-  })(req, res, next);
+  if (error || !data.url) {
+    console.error('[Google OAuth] signInWithOAuth error:', error?.message);
+    return res.redirect(`${config.frontendUrl}/login#error=server_error`);
+  }
+
+  res.redirect(data.url);
 });
 
 router.get('/user', ensureAuthenticated, (req: Request, res: Response) => {
