@@ -25,11 +25,13 @@ export function configurePassport(): void {
   });
 
   if (!config.googleClientId || !config.googleClientSecret) {
-    console.warn(
-      '[Passport] GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set. Google OAuth will be disabled.',
+    console.error(
+      '[Passport] GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set. Google OAuth is DISABLED.',
     );
     return;
   }
+
+  console.log(`[Passport] GOOGLE_CLIENT_ID found (${config.googleClientId.slice(0, 8)}...)`);
 
   const callbackURL = getCallbackUrl();
   console.log(`[Passport] Google OAuth callback URL: ${callbackURL}`);
