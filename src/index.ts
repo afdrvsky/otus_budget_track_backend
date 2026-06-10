@@ -5,6 +5,8 @@ import { config } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 import { authLimiter, generalLimiter } from './middleware/rateLimiter';
 import { requestLogger } from './middleware/requestLogger';
+import { requestId } from './utils/requestId';
+import logger from './utils/logger';
 import authRoutes from './routes/auth';
 import categoryRoutes from './routes/categories';
 import transactionRoutes from './routes/transactions';
@@ -26,6 +28,7 @@ app.use(
   }),
 );
 app.use(express.json({ limit: '10kb' }));
+app.use(requestId);
 app.use(requestLogger);
 
 app.use('/api/health', healthRoutes);
@@ -57,7 +60,7 @@ app.get('/login', (_req, res) => {
 app.use(errorHandler);
 
 app.listen(config.port, () => {
-  console.log(`Server running on port ${config.port} [${config.nodeEnv}]`);
+  logger.info({ port: config.port, env: config.nodeEnv }, 'Server started');
 });
 
 export default app;

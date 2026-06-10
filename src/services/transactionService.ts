@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { createError } from '../middleware/errorHandler';
+import logger from '../utils/logger';
 import { Transaction } from '../types/index';
 
 interface TransactionFilters {
@@ -35,6 +36,7 @@ export async function getTransactions(
   const { data, error } = await query;
 
   if (error) {
+    logger.error({ err: error.message, userId, filters }, 'Failed to fetch transactions');
     throw createError(500, 'Failed to fetch transactions');
   }
 
@@ -80,9 +82,11 @@ export async function createTransaction(
     .single();
 
   if (error) {
+    logger.error({ err: error.message, userId, type, categoryId }, 'Failed to create transaction');
     throw createError(500, 'Failed to create transaction');
   }
 
+  logger.info({ userId, transactionId: data.id, type, amount }, 'Transaction created');
   return data;
 }
 
@@ -162,6 +166,7 @@ export async function updateTransaction(
     .single();
 
   if (error) {
+    logger.error({ err: error.message, userId, transactionId }, 'Failed to update transaction');
     throw createError(500, 'Failed to update transaction');
   }
 
@@ -169,6 +174,7 @@ export async function updateTransaction(
     throw createError(404, 'Transaction not found');
   }
 
+  logger.info({ userId, transactionId }, 'Transaction updated');
   return data;
 }
 
@@ -180,6 +186,9 @@ export async function deleteTransaction(userId: string, transactionId: string): 
     .eq('user_id', userId);
 
   if (error) {
+    logger.error({ err: error.message, userId, transactionId }, 'Failed to delete transaction');
     throw createError(500, 'Failed to delete transaction');
   }
+
+  logger.info({ userId, transactionId }, 'Transaction deleted');
 }

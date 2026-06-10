@@ -1,17 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '../utils/logger';
 
 export function requestLogger(req: Request, res: Response, next: NextFunction): void {
   const start = Date.now();
 
   res.on('finish', () => {
     const duration = Date.now() - start;
-    const level = res.statusCode >= 500 ? 'ERROR' : res.statusCode >= 400 ? 'WARN' : 'INFO';
-    const logFn = level === 'ERROR' ? console.error : level === 'WARN' ? console.warn : console.log;
+    const ctx = {
+      requestId: req.id,
+      method: req.method,
+      url: req.originalUrl,
+      status: res.statusCode,
+      duration,
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    };
 
-    if (res.statusCode >= 400) {
-      logFn(
-        `[${new Date().toISOString()}] ${level} ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms ip=${req.ip}`,
-      );
+    if (res.statusCode >= 500) {
+      logger.error(ctx, 'Request completed with server error');
+    } else if (res.statusCode >= 400) {
+      logger.warn(ctx, 'Request completed with client error');
+    } else {
+      logger.info(ctx, 'Request completed');
     }
   });
 

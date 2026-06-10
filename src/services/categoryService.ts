@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { createError } from '../middleware/errorHandler';
+import logger from '../utils/logger';
 import { Category } from '../types/index';
 
 export async function getCategories(userId: string, type?: string): Promise<Category[]> {
@@ -16,6 +17,7 @@ export async function getCategories(userId: string, type?: string): Promise<Cate
   const { data, error } = await query;
 
   if (error) {
+    logger.error({ err: error.message, userId, type }, 'Failed to fetch categories');
     throw createError(500, 'Failed to fetch categories');
   }
 
@@ -36,11 +38,14 @@ export async function createCategory(
 
   if (error) {
     if (error.code === '23505') {
+      logger.warn({ userId, name, type }, 'Duplicate category creation attempt');
       throw createError(422, `Category "${name}" already exists for type "${type}"`);
     }
+    logger.error({ err: error.message, userId, name, type }, 'Failed to create category');
     throw createError(500, 'Failed to create category');
   }
 
+  logger.info({ userId, categoryId: data.id, name, type }, 'Category created');
   return data;
 }
 
@@ -64,8 +69,10 @@ export async function updateCategory(
 
   if (error) {
     if (error.code === '23505') {
+      logger.warn({ userId, categoryId, name }, 'Duplicate category update attempt');
       throw createError(422, `Category "${name}" already exists`);
     }
+    logger.error({ err: error.message, userId, categoryId }, 'Failed to update category');
     throw createError(500, 'Failed to update category');
   }
 
@@ -73,11 +80,11 @@ export async function updateCategory(
     throw createError(404, 'Category not found');
   }
 
+  logger.info({ userId, categoryId }, 'Category updated');
   return data;
 }
 
 export async function deleteCategory(userId: string, categoryId: string): Promise<void> {
-  // Check for linked transactions
   const { count } = await supabase
     .from('transactions')
     .select('*', { count: 'exact', head: true })
@@ -85,6 +92,7 @@ export async function deleteCategory(userId: string, categoryId: string): Promis
     .eq('user_id', userId);
 
   if (count && count > 0) {
+    logger.warn({ userId, categoryId, linkedTransactions: count }, 'Cannot delete category with linked transactions');
     throw createError(
       422,
       `Cannot delete category: ${count} linked transaction(s) exist. Reassign them first.`,
@@ -98,6 +106,9 @@ export async function deleteCategory(userId: string, categoryId: string): Promis
     .eq('user_id', userId);
 
   if (error) {
+    logger.error({ err: error.message, userId, categoryId }, 'Failed to delete category');
     throw createError(500, 'Failed to delete category');
   }
+
+  logger.info({ userId, categoryId }, 'Category deleted');
 }

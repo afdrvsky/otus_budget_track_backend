@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import { supabase } from '../config/supabase';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.get('/', async (_req, res: Response) => {
 
     if (error) {
       database = { status: 'error', error: error.message };
+      logger.error({ err: error.message }, 'Health check: database unreachable');
     } else {
       database = { status: 'ok', responseTime: `${dbResponseTime}ms` };
     }
@@ -30,6 +32,7 @@ router.get('/', async (_req, res: Response) => {
       status: 'error',
       error: err instanceof Error ? err.message : 'unknown',
     };
+    logger.error({ err }, 'Health check: database connection failed');
   }
 
   const isDegraded = database.status === 'error';

@@ -1,5 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import { config } from '../config/env';
+import logger from '../utils/logger';
 
 export interface AppError extends Error {
   status?: number;
@@ -8,7 +9,7 @@ export interface AppError extends Error {
 
 export function errorHandler(
   err: AppError,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ): void {
@@ -16,15 +17,23 @@ export function errorHandler(
   const message = err.message || 'Internal server error';
   const isDev = config.nodeEnv === 'development';
 
+  const logContext = {
+    requestId: req.id,
+    method: req.method,
+    url: req.originalUrl,
+    status,
+    err,
+  };
+
   if (status >= 500) {
-    console.error(
-      `[${new Date().toISOString()}] ${status} ${_req.method} ${_req.originalUrl}:`,
-      err.message,
-    );
+    logger.error(logContext, message);
+  } else {
+    logger.warn(logContext, message);
   }
 
   res.status(status).json({
     error: status === 500 && !isDev ? 'Internal server error' : message,
+    requestId: req.id,
     ...(status !== 500 && err.details ? { details: err.details } : {}),
   });
 }
