@@ -9,6 +9,7 @@ import authRoutes from './routes/auth';
 import categoryRoutes from './routes/categories';
 import transactionRoutes from './routes/transactions';
 import googleAuthRoutes from './routes/googleAuth';
+import healthRoutes from './routes/health';
 
 import { authMiddleware } from './middleware/auth';
 import { getCurrentUser } from './services/authService';
@@ -27,15 +28,13 @@ app.use(
 app.use(express.json({ limit: '10kb' }));
 app.use(requestLogger);
 
+app.use('/api/health', healthRoutes);
+
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/auth', googleAuthRoutes);
 app.use('/api', generalLimiter);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/transactions', transactionRoutes);
-
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok' });
-});
 
 app.get('/api/user', authMiddleware, async (req, res, next) => {
   try {
