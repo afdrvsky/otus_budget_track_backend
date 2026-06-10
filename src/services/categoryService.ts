@@ -92,7 +92,10 @@ export async function deleteCategory(userId: string, categoryId: string): Promis
     .eq('user_id', userId);
 
   if (count && count > 0) {
-    logger.warn({ userId, categoryId, linkedTransactions: count }, 'Cannot delete category with linked transactions');
+    logger.warn(
+      { userId, categoryId, linkedTransactions: count },
+      'Cannot delete category with linked transactions',
+    );
     throw createError(
       422,
       `Cannot delete category: ${count} linked transaction(s) exist. Reassign them first.`,

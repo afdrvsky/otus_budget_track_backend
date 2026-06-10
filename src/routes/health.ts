@@ -62,9 +62,7 @@ router.get('/ready', async (_req, res: Response) => {
     }
     res.json({ ok: true });
   } catch (err: unknown) {
-    res
-      .status(503)
-      .json({ ok: false, error: err instanceof Error ? err.message : 'unknown' });
+    res.status(503).json({ ok: false, error: err instanceof Error ? err.message : 'unknown' });
   }
 });
 
