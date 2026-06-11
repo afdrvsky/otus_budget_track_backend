@@ -67,15 +67,15 @@ function makeChain() {
 let currentSelf: Record<string, unknown>;
 
 vi.mock('../config/supabase', () => {
+  const from = vi.fn(() => currentSelf);
   return {
-    supabase: {
-      from: vi.fn(() => currentSelf),
-    },
+    supabase: { from },
+    supabaseAdmin: { from },
   };
 });
 
 import * as categoryService from '../services/categoryService';
-import { supabase } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase';
 
 describe('categoryService', () => {
   beforeEach(() => {
@@ -97,7 +97,7 @@ describe('categoryService', () => {
 
       const result = await categoryService.getCategories('u1');
 
-      expect(supabase.from).toHaveBeenCalledWith('categories');
+      expect(supabaseAdmin.from).toHaveBeenCalledWith('categories');
       expect(result).toEqual(categories);
     });
 
@@ -228,7 +228,7 @@ describe('categoryService', () => {
       const { self } = makeChain();
       // First call (count check) returns 0 transactions
       let callCount = 0;
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // transactions count query
@@ -245,11 +245,11 @@ describe('categoryService', () => {
       await categoryService.deleteCategory('u1', '1');
 
       // Should reach the delete call
-      expect(supabase.from).toHaveBeenCalledWith('categories');
+      expect(supabaseAdmin.from).toHaveBeenCalledWith('categories');
     });
 
     it('should throw 422 when linked transactions exist', async () => {
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         const countSelf: Record<string, unknown> = {};
         countSelf.then = (resolve: (v: unknown) => void) =>
           resolve({ data: [], error: null, count: 5 });

@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { supabase } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -18,7 +18,7 @@ router.get('/', async (_req, res: Response) => {
 
   try {
     const dbStart = Date.now();
-    const { error } = await supabase.from('profiles').select('id').limit(1);
+    const { error } = await supabaseAdmin.from('profiles').select('id').limit(1);
     const dbResponseTime = Date.now() - dbStart;
 
     if (error) {
@@ -55,7 +55,7 @@ router.get('/live', (_req, res: Response) => {
 
 router.get('/ready', async (_req, res: Response) => {
   try {
-    const { error } = await supabase.from('profiles').select('id').limit(1);
+    const { error } = await supabaseAdmin.from('profiles').select('id').limit(1);
     if (error) {
       res.status(503).json({ ok: false, error: error.message });
       return;

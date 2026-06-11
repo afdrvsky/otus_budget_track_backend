@@ -1,10 +1,10 @@
-import { supabase } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase';
 import { createError } from '../middleware/errorHandler';
 import logger from '../utils/logger';
 import { Category } from '../types/index';
 
 export async function getCategories(userId: string, type?: string): Promise<Category[]> {
-  let query = supabase
+  let query = supabaseAdmin
     .from('categories')
     .select('*')
     .eq('user_id', userId)
@@ -30,7 +30,7 @@ export async function createCategory(
   type: string,
   color: string,
 ): Promise<Category> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('categories')
     .insert({ user_id: userId, name, type, color, is_default: false })
     .select()
@@ -59,7 +59,7 @@ export async function updateCategory(
   if (name !== undefined) updates.name = name;
   if (color !== undefined) updates.color = color;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('categories')
     .update(updates)
     .eq('id', categoryId)
@@ -85,7 +85,7 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(userId: string, categoryId: string): Promise<void> {
-  const { count } = await supabase
+  const { count } = await supabaseAdmin
     .from('transactions')
     .select('*', { count: 'exact', head: true })
     .eq('category_id', categoryId)
@@ -102,7 +102,7 @@ export async function deleteCategory(userId: string, categoryId: string): Promis
     );
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('categories')
     .delete()
     .eq('id', categoryId)

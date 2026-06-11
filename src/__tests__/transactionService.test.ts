@@ -24,14 +24,16 @@ function makeChain(result: { data: unknown; error: unknown }) {
 
 let mockResult: { data: unknown; error: unknown } = { data: null, error: null };
 
-vi.mock('../config/supabase', () => ({
-  supabase: {
-    from: vi.fn(() => makeChain(mockResult)),
-  },
-}));
+vi.mock('../config/supabase', () => {
+  const from = vi.fn(() => makeChain(mockResult));
+  return {
+    supabase: { from },
+    supabaseAdmin: { from },
+  };
+});
 
 import * as transactionService from '../services/transactionService';
-import { supabase } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase';
 
 describe('transactionService', () => {
   beforeEach(() => {
@@ -54,7 +56,7 @@ describe('transactionService', () => {
 
       const result = await transactionService.getTransactions('u1', {});
 
-      expect(supabase.from).toHaveBeenCalledWith('transactions');
+      expect(supabaseAdmin.from).toHaveBeenCalledWith('transactions');
       expect(result).toEqual(transactions);
     });
 
@@ -63,7 +65,7 @@ describe('transactionService', () => {
 
       await transactionService.getTransactions('u1', { type: 'expense' });
 
-      const chain = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
+      const chain = (supabaseAdmin.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
         string,
         ReturnType<typeof vi.fn>
       >;
@@ -78,7 +80,7 @@ describe('transactionService', () => {
         dateTo: '2025-12-31',
       });
 
-      const chain = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
+      const chain = (supabaseAdmin.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
         string,
         ReturnType<typeof vi.fn>
       >;
@@ -91,7 +93,7 @@ describe('transactionService', () => {
 
       await transactionService.getTransactions('u1', { categoryId: 'c1' });
 
-      const chain = (supabase.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
+      const chain = (supabaseAdmin.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
         string,
         ReturnType<typeof vi.fn>
       >;
@@ -117,7 +119,7 @@ describe('transactionService', () => {
       };
 
       let callCount = 0;
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           // Category lookup — uses .single()
@@ -140,7 +142,7 @@ describe('transactionService', () => {
     });
 
     it('should throw 404 when category not found', async () => {
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         return makeChain({ data: null, error: null });
       });
 
@@ -150,7 +152,7 @@ describe('transactionService', () => {
     });
 
     it('should throw 422 when category type does not match transaction type', async () => {
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         return makeChain({ data: { id: 'c1', type: 'income' }, error: null });
       });
 
@@ -161,7 +163,7 @@ describe('transactionService', () => {
 
     it('should throw 500 on insert error', async () => {
       let callCount = 0;
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           return makeChain({ data: { id: 'c1', type: 'expense' }, error: null });
@@ -179,7 +181,7 @@ describe('transactionService', () => {
     it('should update a transaction with category validation', async () => {
       const updated = { id: 't1', amount: 200, categories: { id: 'c1', name: 'Food' } };
       let callCount = 0;
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         callCount++;
         if (callCount === 1) {
           return makeChain({ data: { id: 'c1', type: 'expense' }, error: null });
@@ -199,7 +201,7 @@ describe('transactionService', () => {
     });
 
     it('should throw 404 when transaction not found (data is null, no error)', async () => {
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         return makeChain({ data: null, error: null });
       });
 
@@ -209,7 +211,7 @@ describe('transactionService', () => {
     });
 
     it('should throw 500 on update error', async () => {
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         return makeChain({ data: null, error: { message: 'Update failed' } });
       });
 
@@ -222,17 +224,17 @@ describe('transactionService', () => {
   describe('deleteTransaction', () => {
     it('should delete a transaction', async () => {
       // deleteTransaction uses await (thenable), not .single()
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         return makeChain({ data: null, error: null });
       });
 
       await transactionService.deleteTransaction('u1', 't1');
 
-      expect(supabase.from).toHaveBeenCalledWith('transactions');
+      expect(supabaseAdmin.from).toHaveBeenCalledWith('transactions');
     });
 
     it('should throw on delete error', async () => {
-      (supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
         return makeChain({ data: null, error: { message: 'Delete failed' } });
       });
 

@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { supabaseAdmin } from '../config/supabase';
 import { createError } from '../middleware/errorHandler';
 import logger from '../utils/logger';
 import { Transaction } from '../types/index';
@@ -14,7 +14,7 @@ export async function getTransactions(
   userId: string,
   filters: TransactionFilters,
 ): Promise<Transaction[]> {
-  let query = supabase
+  let query = supabaseAdmin
     .from('transactions')
     .select('*, categories(id, name, type, color)')
     .eq('user_id', userId)
@@ -51,7 +51,7 @@ export async function createTransaction(
   transactionDate: string,
   comment?: string,
 ): Promise<Transaction> {
-  const { data: category } = await supabase
+  const { data: category } = await supabaseAdmin
     .from('categories')
     .select('id, type')
     .eq('id', categoryId)
@@ -68,7 +68,7 @@ export async function createTransaction(
     );
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('transactions')
     .insert({
       user_id: userId,
@@ -104,7 +104,7 @@ export async function updateTransaction(
   const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
   if (updates.categoryId !== undefined) {
-    const { data: category } = await supabase
+    const { data: category } = await supabaseAdmin
       .from('categories')
       .select('id, type')
       .eq('id', updates.categoryId)
@@ -127,7 +127,7 @@ export async function updateTransaction(
 
   if (updates.type !== undefined) {
     if (updates.categoryId === undefined) {
-      const { data: transaction } = await supabase
+      const { data: transaction } = await supabaseAdmin
         .from('transactions')
         .select('category_id')
         .eq('id', transactionId)
@@ -135,7 +135,7 @@ export async function updateTransaction(
         .single();
 
       if (transaction) {
-        const { data: existingCategory } = await supabase
+        const { data: existingCategory } = await supabaseAdmin
           .from('categories')
           .select('type')
           .eq('id', transaction.category_id)
@@ -157,7 +157,7 @@ export async function updateTransaction(
   if (updates.comment !== undefined) updateData.comment = updates.comment;
   if (updates.transactionDate !== undefined) updateData.transaction_date = updates.transactionDate;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('transactions')
     .update(updateData)
     .eq('id', transactionId)
@@ -179,7 +179,7 @@ export async function updateTransaction(
 }
 
 export async function deleteTransaction(userId: string, transactionId: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('transactions')
     .delete()
     .eq('id', transactionId)
