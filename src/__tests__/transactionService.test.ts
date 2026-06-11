@@ -65,10 +65,8 @@ describe('transactionService', () => {
 
       await transactionService.getTransactions('u1', { type: 'expense' });
 
-      const chain = (supabaseAdmin.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
-        string,
-        ReturnType<typeof vi.fn>
-      >;
+      const chain = (supabaseAdmin.from as ReturnType<typeof vi.fn>).mock.results[0]
+        .value as Record<string, ReturnType<typeof vi.fn>>;
       expect(chain.eq).toHaveBeenCalledWith('type', 'expense');
     });
 
@@ -80,10 +78,8 @@ describe('transactionService', () => {
         dateTo: '2025-12-31',
       });
 
-      const chain = (supabaseAdmin.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
-        string,
-        ReturnType<typeof vi.fn>
-      >;
+      const chain = (supabaseAdmin.from as ReturnType<typeof vi.fn>).mock.results[0]
+        .value as Record<string, ReturnType<typeof vi.fn>>;
       expect(chain.gte).toHaveBeenCalledWith('transaction_date', '2025-01-01');
       expect(chain.lte).toHaveBeenCalledWith('transaction_date', '2025-12-31');
     });
@@ -93,10 +89,8 @@ describe('transactionService', () => {
 
       await transactionService.getTransactions('u1', { categoryId: 'c1' });
 
-      const chain = (supabaseAdmin.from as ReturnType<typeof vi.fn>).mock.results[0].value as Record<
-        string,
-        ReturnType<typeof vi.fn>
-      >;
+      const chain = (supabaseAdmin.from as ReturnType<typeof vi.fn>).mock.results[0]
+        .value as Record<string, ReturnType<typeof vi.fn>>;
       expect(chain.eq).toHaveBeenCalledWith('category_id', 'c1');
     });
 
