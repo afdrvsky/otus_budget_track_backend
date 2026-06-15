@@ -230,8 +230,7 @@ describe('categoryService', () => {
           catSelf.select = vi.fn(() => catSelf);
           catSelf.eq = vi.fn(() => catSelf);
           catSelf.single = vi.fn(() => Promise.resolve({ data: category, error: null }));
-          catSelf.then = (resolve: (v: unknown) => void) =>
-            resolve({ data: null, error: null });
+          catSelf.then = (resolve: (v: unknown) => void) => resolve({ data: null, error: null });
           catSelf.delete = vi.fn(() => catSelf);
           return catSelf;
         }
@@ -299,8 +298,7 @@ describe('categoryService', () => {
           const s: Record<string, unknown> = {};
           s.select = vi.fn(() => s);
           s.eq = vi.fn(() => s);
-          s.then = (resolve: (v: unknown) => void) =>
-            resolve({ data: [], error: null, count: 3 });
+          s.then = (resolve: (v: unknown) => void) => resolve({ data: [], error: null, count: 3 });
           return s;
         }
         if (callIdx === 3) {
@@ -350,8 +348,7 @@ describe('categoryService', () => {
           const s: Record<string, unknown> = {};
           s.select = vi.fn(() => s);
           s.eq = vi.fn(() => s);
-          s.then = (resolve: (v: unknown) => void) =>
-            resolve({ data: [], error: null, count: 2 });
+          s.then = (resolve: (v: unknown) => void) => resolve({ data: [], error: null, count: 2 });
           return s;
         }
         const s: Record<string, unknown> = {};
@@ -382,8 +379,7 @@ describe('categoryService', () => {
         const s: Record<string, unknown> = {};
         s.select = vi.fn(() => s);
         s.eq = vi.fn(() => s);
-        s.then = (resolve: (v: unknown) => void) =>
-          resolve({ data: [], error: null, count: 5 });
+        s.then = (resolve: (v: unknown) => void) => resolve({ data: [], error: null, count: 5 });
         return s;
       });
 
