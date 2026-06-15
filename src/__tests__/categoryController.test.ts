@@ -182,12 +182,12 @@ describe('categoryController', () => {
   });
 
   describe('DELETE /categories/:id', () => {
+    const validUuid = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+
     it('should delete a category', async () => {
       (categoryService.deleteCategory as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 
-      const res = await request(createApp()).delete(
-        '/categories/00000000-0000-0000-0000-000000000000',
-      );
+      const res = await request(createApp()).delete(`/categories/${validUuid}`);
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Category deleted');
@@ -199,19 +199,16 @@ describe('categoryController', () => {
       expect(res.status).toBe(422);
     });
 
-    it('should return 422 when linked transactions exist', async () => {
-      const err = Object.assign(
-        new Error('Cannot delete category: 3 linked transaction(s) exist'),
-        { status: 422 },
-      );
+    it('should return 422 when deleting a default category', async () => {
+      const err = Object.assign(new Error('Cannot delete a default category'), {
+        status: 422,
+      });
       (categoryService.deleteCategory as ReturnType<typeof vi.fn>).mockRejectedValue(err);
 
-      const res = await request(createApp()).delete(
-        '/categories/00000000-0000-0000-0000-000000000000',
-      );
+      const res = await request(createApp()).delete(`/categories/${validUuid}`);
 
       expect(res.status).toBe(422);
-      expect(res.body.error).toContain('linked transaction');
+      expect(res.body.error).toContain('default category');
     });
   });
 });

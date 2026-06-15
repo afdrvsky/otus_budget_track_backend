@@ -221,41 +221,170 @@ describe('categoryService', () => {
   });
 
   describe('deleteCategory', () => {
-    it('should delete a category with no linked transactions', async () => {
-      mockChain.data = null;
-      mockChain.error = null;
+    it('should delete a custom category with no linked transactions', async () => {
+      const category = { id: '1', type: 'expense', is_default: false };
 
-      const { self } = makeChain();
-      // First call (count check) returns 0 transactions
-      let callCount = 0;
-      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
-        callCount++;
-        if (callCount === 1) {
-          // transactions count query
-          const countSelf: Record<string, unknown> = {};
-          countSelf.then = (resolve: (v: unknown) => void) =>
-            resolve({ data: [], error: null, count: 0 });
-          countSelf.select = vi.fn(() => countSelf);
-          countSelf.eq = vi.fn(() => countSelf);
-          return countSelf;
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+        if (table === 'categories') {
+          const catSelf: Record<string, unknown> = {};
+          catSelf.select = vi.fn(() => catSelf);
+          catSelf.eq = vi.fn(() => catSelf);
+          catSelf.single = vi.fn(() => Promise.resolve({ data: category, error: null }));
+          catSelf.then = (resolve: (v: unknown) => void) =>
+            resolve({ data: null, error: null });
+          catSelf.delete = vi.fn(() => catSelf);
+          return catSelf;
         }
-        return self;
+        // transactions count query
+        const countSelf: Record<string, unknown> = {};
+        countSelf.select = vi.fn(() => countSelf);
+        countSelf.eq = vi.fn(() => countSelf);
+        countSelf.then = (resolve: (v: unknown) => void) =>
+          resolve({ data: [], error: null, count: 0 });
+        return countSelf;
       });
 
       await categoryService.deleteCategory('u1', '1');
 
-      // Should reach the delete call
       expect(supabaseAdmin.from).toHaveBeenCalledWith('categories');
     });
 
-    it('should throw 422 when linked transactions exist', async () => {
+    it('should throw 422 when trying to delete a default category', async () => {
+      const category = { id: '1', type: 'expense', is_default: true };
+
       (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
-        const countSelf: Record<string, unknown> = {};
-        countSelf.then = (resolve: (v: unknown) => void) =>
+        const catSelf: Record<string, unknown> = {};
+        catSelf.select = vi.fn(() => catSelf);
+        catSelf.eq = vi.fn(() => catSelf);
+        catSelf.single = vi.fn(() => Promise.resolve({ data: category, error: null }));
+        return catSelf;
+      });
+
+      await expect(categoryService.deleteCategory('u1', '1')).rejects.toThrow(
+        'Cannot delete a default category',
+      );
+    });
+
+    it('should throw 404 when category not found', async () => {
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        const catSelf: Record<string, unknown> = {};
+        catSelf.select = vi.fn(() => catSelf);
+        catSelf.eq = vi.fn(() => catSelf);
+        catSelf.single = vi.fn(() => Promise.resolve({ data: null, error: null }));
+        return catSelf;
+      });
+
+      await expect(categoryService.deleteCategory('u1', 'missing')).rejects.toThrow(
+        'Category not found',
+      );
+    });
+
+    it('should reassign transactions when reassignTo is provided', async () => {
+      const category = { id: '1', type: 'expense', is_default: false };
+      const targetCategory = { id: '2', type: 'expense' };
+
+      let callIdx = 0;
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+        callIdx++;
+        if (callIdx === 1) {
+          // fetch source category
+          const s: Record<string, unknown> = {};
+          s.select = vi.fn(() => s);
+          s.eq = vi.fn(() => s);
+          s.single = vi.fn(() => Promise.resolve({ data: category, error: null }));
+          return s;
+        }
+        if (callIdx === 2) {
+          // count transactions
+          const s: Record<string, unknown> = {};
+          s.select = vi.fn(() => s);
+          s.eq = vi.fn(() => s);
+          s.then = (resolve: (v: unknown) => void) =>
+            resolve({ data: [], error: null, count: 3 });
+          return s;
+        }
+        if (callIdx === 3) {
+          // fetch target category
+          const s: Record<string, unknown> = {};
+          s.select = vi.fn(() => s);
+          s.eq = vi.fn(() => s);
+          s.single = vi.fn(() => Promise.resolve({ data: targetCategory, error: null }));
+          return s;
+        }
+        if (callIdx === 4) {
+          // reassign transactions update
+          const s: Record<string, unknown> = {};
+          s.update = vi.fn(() => s);
+          s.eq = vi.fn(() => s);
+          s.then = (resolve: (v: unknown) => void) => resolve({ data: null, error: null });
+          return s;
+        }
+        // delete category
+        const s: Record<string, unknown> = {};
+        s.delete = vi.fn(() => s);
+        s.eq = vi.fn(() => s);
+        s.then = (resolve: (v: unknown) => void) => resolve({ data: null, error: null });
+        return s;
+      });
+
+      await categoryService.deleteCategory('u1', '1', '2');
+
+      expect(supabaseAdmin.from).toHaveBeenCalledWith('categories');
+    });
+
+    it('should throw 422 when reassign target has different type', async () => {
+      const category = { id: '1', type: 'expense', is_default: false };
+      const targetCategory = { id: '2', type: 'income' };
+
+      let callIdx = 0;
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        callIdx++;
+        if (callIdx === 1) {
+          const s: Record<string, unknown> = {};
+          s.select = vi.fn(() => s);
+          s.eq = vi.fn(() => s);
+          s.single = vi.fn(() => Promise.resolve({ data: category, error: null }));
+          return s;
+        }
+        if (callIdx === 2) {
+          const s: Record<string, unknown> = {};
+          s.select = vi.fn(() => s);
+          s.eq = vi.fn(() => s);
+          s.then = (resolve: (v: unknown) => void) =>
+            resolve({ data: [], error: null, count: 2 });
+          return s;
+        }
+        const s: Record<string, unknown> = {};
+        s.select = vi.fn(() => s);
+        s.eq = vi.fn(() => s);
+        s.single = vi.fn(() => Promise.resolve({ data: targetCategory, error: null }));
+        return s;
+      });
+
+      await expect(categoryService.deleteCategory('u1', '1', '2')).rejects.toThrow(
+        'Cannot reassign transactions to a category of a different type',
+      );
+    });
+
+    it('should throw 422 when category has transactions and no reassignTo', async () => {
+      const category = { id: '1', type: 'expense', is_default: false };
+
+      let callIdx = 0;
+      (supabaseAdmin.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        callIdx++;
+        if (callIdx === 1) {
+          const s: Record<string, unknown> = {};
+          s.select = vi.fn(() => s);
+          s.eq = vi.fn(() => s);
+          s.single = vi.fn(() => Promise.resolve({ data: category, error: null }));
+          return s;
+        }
+        const s: Record<string, unknown> = {};
+        s.select = vi.fn(() => s);
+        s.eq = vi.fn(() => s);
+        s.then = (resolve: (v: unknown) => void) =>
           resolve({ data: [], error: null, count: 5 });
-        countSelf.select = vi.fn(() => countSelf);
-        countSelf.eq = vi.fn(() => countSelf);
-        return countSelf;
+        return s;
       });
 
       await expect(categoryService.deleteCategory('u1', '1')).rejects.toThrow(

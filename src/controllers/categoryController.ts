@@ -96,7 +96,10 @@ export async function updateCategory(
   }
 }
 
-export const deleteCategoryValidation = [param('id').isUUID().withMessage('Invalid category ID')];
+export const deleteCategoryValidation = [
+  param('id').isUUID().withMessage('Invalid category ID'),
+  query('reassign_to').optional().isUUID().withMessage('reassign_to must be a valid UUID'),
+];
 
 export async function deleteCategory(
   req: AuthRequest,
@@ -111,7 +114,8 @@ export async function deleteCategory(
 
     const userId = req.userId!;
     const id = req.params.id as string;
-    await categoryService.deleteCategory(userId, id);
+    const reassignTo = req.query.reassign_to as string | undefined;
+    await categoryService.deleteCategory(userId, id, reassignTo);
 
     res.json({ message: 'Category deleted' });
   } catch (err) {

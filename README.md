@@ -2,6 +2,9 @@
 
 REST API для приложения учёта личного бюджета. Аутентификация и хранение данных — через Supabase.
 
+**Frontend:** https://github.com/afdrvsky/otus_budget_track_web  
+**Production (web):** https://otus-budget-track-web.vercel.app
+
 ## Стек
 
 - **Node.js** + **Express 5** + TypeScript
@@ -47,6 +50,28 @@ npm run dev      # Development с hot reload
 npm run build    # Production сборка
 npm start        # Запуск production сборки
 ```
+
+## Локальный запуск (backend + frontend)
+
+```bash
+# 1. Клонировать оба репозитория
+git clone https://github.com/afdrvsky/otus_budget_track_backend.git
+git clone https://github.com/afdrvsky/otus_budget_track_web.git
+
+# 2. Поднять бэкенд
+cd otus_budget_track_backend
+npm install
+cp .env.example .env   # заполнить Supabase + Google OAuth
+npm run dev            # → http://localhost:8080
+
+# 3. Поднять фронтенд
+cd ../otus_budget_track_web
+npm install
+cp .env.example .env   # VITE_API_URL=http://localhost:8080/api
+npm run dev            # → http://localhost:5173
+```
+
+Открыть http://localhost:5173 — зарегистрироваться, добавить транзакции, проверить категории и статистику.
 
 ## Тесты
 

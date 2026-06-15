@@ -84,7 +84,26 @@ export async function updateCategory(
   return data;
 }
 
-export async function deleteCategory(userId: string, categoryId: string): Promise<void> {
+export async function deleteCategory(
+  userId: string,
+  categoryId: string,
+  reassignTo?: string,
+): Promise<void> {
+  const { data: category } = await supabaseAdmin
+    .from('categories')
+    .select('id, type, is_default')
+    .eq('id', categoryId)
+    .eq('user_id', userId)
+    .single();
+
+  if (!category) {
+    throw createError(404, 'Category not found');
+  }
+
+  if (category.is_default) {
+    throw createError(422, 'Cannot delete a default category');
+  }
+
   const { count } = await supabaseAdmin
     .from('transactions')
     .select('*', { count: 'exact', head: true })
@@ -92,13 +111,45 @@ export async function deleteCategory(userId: string, categoryId: string): Promis
     .eq('user_id', userId);
 
   if (count && count > 0) {
-    logger.warn(
-      { userId, categoryId, linkedTransactions: count },
-      'Cannot delete category with linked transactions',
-    );
-    throw createError(
-      422,
-      `Cannot delete category: ${count} linked transaction(s) exist. Reassign them first.`,
+    if (!reassignTo) {
+      throw createError(
+        422,
+        `Cannot delete category: ${count} linked transaction(s) exist. Reassign them first.`,
+      );
+    }
+
+    const { data: targetCategory } = await supabaseAdmin
+      .from('categories')
+      .select('id, type')
+      .eq('id', reassignTo)
+      .eq('user_id', userId)
+      .single();
+
+    if (!targetCategory) {
+      throw createError(404, 'Reassign target category not found');
+    }
+
+    if (targetCategory.type !== category.type) {
+      throw createError(422, 'Cannot reassign transactions to a category of a different type');
+    }
+
+    const { error: reassignError } = await supabaseAdmin
+      .from('transactions')
+      .update({ category_id: reassignTo, updated_at: new Date().toISOString() })
+      .eq('category_id', categoryId)
+      .eq('user_id', userId);
+
+    if (reassignError) {
+      logger.error(
+        { err: reassignError.message, userId, categoryId, reassignTo },
+        'Failed to reassign transactions',
+      );
+      throw createError(500, 'Failed to reassign transactions');
+    }
+
+    logger.info(
+      { userId, categoryId, reassignTo, count },
+      'Transactions reassigned before category deletion',
     );
   }
 
